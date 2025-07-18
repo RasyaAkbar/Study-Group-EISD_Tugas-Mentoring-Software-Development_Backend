@@ -1,15 +1,24 @@
 const db = require("../models");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 const User = db.User;
-exports.createUser = async (userData) => {
-  const { name, email, password } = userData;
 
+exports.createUser = async (userData) => {
+  const { name, email, password, role } = userData;
 
   if (!name || !email || !password) {
     throw new Error("Nama, email, dan password harus diisi.");
   }
 
-  const newUser = await User.create({ name, email, password });
-  return newUser;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  const newUser = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: role || "user",
+  });
+
+  return { id: newUser.id, name: newUser.name, email: newUser.email };
 };
 
 exports.findAllUsers = async () => {
